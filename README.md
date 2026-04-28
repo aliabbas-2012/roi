@@ -64,7 +64,7 @@ The goal is to maintain one source of truth for reusable frontend building block
 - Dashboard pages use a feature-oriented structure:
   - Route entry at `pages/<Feature>/index.jsx`
   - UI pieces in `components/<Feature>/...`
-- Clean import style using `@components` alias from a central `components/index.js` barrel file
+- Clean import style using `@components` alias from a central `components/index.ts` barrel file
 
 ---
 
@@ -72,6 +72,7 @@ The goal is to maintain one source of truth for reusable frontend building block
 
 - **Next.js** (App Router usage in `src/app`)
 - **React** (functional components + hooks)
+- **TypeScript** (`.tsx`/`.ts`)
 - **React Bootstrap**
 - **Sass / SCSS**
 - **FontAwesome**
@@ -232,13 +233,13 @@ import { UsersContent } from "@components";
 
 Configured through:
 
-- `roi-admin-app/jsconfig.json`
-- `roi-client-app/jsconfig.json`
+- `roi-admin-app/tsconfig.json`
+- `roi-client-app/tsconfig.json`
 
 and component barrel exports:
 
-- `roi-admin-app/src/components/index.js`
-- `roi-client-app/src/components/index.js`
+- `roi-admin-app/src/components/index.ts`
+- `roi-client-app/src/components/index.ts`
 
 ---
 
@@ -306,6 +307,31 @@ Build per app:
 yarn build:admin
 yarn build:client
 ```
+
+---
+
+## TypeScript Migration
+
+The codebase has been migrated from JavaScript to TypeScript file extensions:
+
+- App and UI files: `.jsx` -> `.tsx`
+- Hook/utility/barrel files: `.js` -> `.ts`
+
+TypeScript setup includes:
+
+- Root dev dependencies:
+  - `typescript`
+  - `@types/react`
+  - `@types/react-dom`
+  - `@types/node`
+- App configs:
+  - `roi-admin-app/tsconfig.json`
+  - `roi-client-app/tsconfig.json`
+- Shared config:
+  - `roi-shared/tsconfig.json`
+
+To keep migration stable without blocking development, source files currently include `// @ts-nocheck`.  
+This allows gradual typing improvements while keeping builds green.
 
 ---
 
@@ -385,7 +411,7 @@ Planned next features:
 1. Keep route entry logic in `pages/<Feature>/index.jsx`
 2. Keep UI modules inside `components/<Feature>/`
 3. Reuse from `roi-shared` first before adding local duplicates
-4. Export feature UI through `components/index.js`
+4. Export feature UI through `components/index.ts`
 5. Prefer consistent design tokens and shared styles
 6. Keep client/admin patterns aligned unless business logic differs
 
@@ -405,7 +431,7 @@ Planned next features:
   ```
 
 ## Import alias not resolving
-- Verify `jsconfig.json` exists per app
+- Verify `tsconfig.json` exists per app
 - Restart dev server after alias changes
 
 ## UI layout broken after changes

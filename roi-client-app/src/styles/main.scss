@@ -1,0 +1,11 @@
+@use "roi-shared/src/styles/global.scss";
+
+.sidebar-panel {
+  background: linear-gradient(180deg, #1b4965 0%, #0f2f45 100%);
+}
+
+@media (max-width: 991.98px) {
+  .offcanvas .sidebar-panel {
+    min-height: 100%;
+  }
+}

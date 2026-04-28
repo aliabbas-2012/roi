@@ -1,0 +1,13 @@
+{
+  "name": "roi-admin-app",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000"
+  },
+  "dependencies": {
+    "roi-shared": "*"
+  }
+}

@@ -23,7 +23,10 @@ This project is structured for scalability, reuse, and clean feature growth.
   - [Shared Package](#shared-package-roi-shared)
 - [Routing Design](#routing-design)
 - [Layout and UI System](#layout-and-ui-system)
+- [Styling and CSS Imports](#styling-and-css-imports)
 - [Component Organization](#component-organization)
+- [Shared Components in `roi-shared`](#shared-components-in-roi-shared)
+- [Next.js App Router Notes](#nextjs-app-router-notes)
 - [Alias and Imports](#alias-and-imports)
 - [State and Data Layer](#state-and-data-layer)
 - [Authentication Status](#authentication-status)
@@ -136,7 +139,7 @@ Reusable modules shared by both apps:
 
 ```txt
 roi-shared/src/
-├── components/   # Button, Input, Modal, Loader, Card, Table
+├── components/   # Button, Input, Modal, Loader, Card, Table, PlaceholderPage, ProtectedRoute, ProfileContent
 ├── hooks/        # useAuth, useDebounce, useToggle
 ├── layouts/      # AuthLayout, BaseDashboardLayout
 ├── styles/       # variables.scss, mixins.scss, global.scss
@@ -204,6 +207,27 @@ Navbar profile dropdown uses the shared primary color for:
 
 ---
 
+## Styling and CSS Imports
+
+Global styles are now loaded through each app `main.scss` file (single stylesheet entry per app):
+
+- `roi-admin-app/src/styles/main.scss`
+- `roi-client-app/src/styles/main.scss`
+
+Import order in `main.scss` is important for Sass:
+
+1. `@use "roi-shared/src/styles/global.scss";`
+2. `@import "bootstrap/dist/css/bootstrap.min.css";`
+3. App overrides (sidebar gradients, media queries, etc.)
+
+Both app `layout.tsx` files now import only:
+
+```ts
+import "../styles/main.scss";
+```
+
+---
+
 ## Component Organization
 
 Current project follows:
@@ -229,6 +253,39 @@ src/
 ```
 
 This keeps route files minimal and feature UI modular.
+
+---
+
+## Shared Components in `roi-shared`
+
+To reduce duplication between admin and client apps, these components are centralized in `roi-shared`:
+
+- `roi-shared/src/components/ProtectedRoute.tsx`
+- `roi-shared/src/components/PlaceholderPage.tsx`
+- `roi-shared/src/components/ProfileContent.tsx`
+
+They are exported from `roi-shared/src/index.ts` and consumed by both apps.
+
+---
+
+## Next.js App Router Notes
+
+This project uses **Next.js App Router** (`src/app`) in both apps.
+
+- `src/app/layout.tsx` is the correct and required root layout filename.
+- Do not rename reserved App Router files such as:
+  - `layout.tsx`
+  - `page.tsx`
+  - `loading.tsx`
+  - `error.tsx`
+  - `not-found.tsx`
+  - `route.ts`
+
+Important clarification:
+- `export const metadata = { ... }` belongs in `layout.tsx`/route files (for HTML metadata), not in `package.json`.
+
+Route group cleanup:
+- Old empty route-group folders like `src/app/(dashboard)` were removed from both apps to keep structure clean.
 
 ---
 

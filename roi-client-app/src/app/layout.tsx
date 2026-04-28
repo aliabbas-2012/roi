@@ -1,6 +1,4 @@
 // @ts-nocheck
-import "bootstrap/dist/css/bootstrap.min.css";
-import "roi-shared/src/styles/global.scss";
 import "../styles/main.scss";
 import Providers from "./providers";
 

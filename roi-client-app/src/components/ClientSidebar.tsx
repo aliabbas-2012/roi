@@ -9,7 +9,6 @@ import {
   faChartPie,
   faHandHoldingDollar,
   faMoneyBillTransfer,
-  faUser,
   faUserGroup,
   faWallet,
 } from "@fortawesome/free-solid-svg-icons";
@@ -20,7 +19,6 @@ const items = [
   { to: "/investments", label: "Investments", icon: faHandHoldingDollar },
   { to: "/withdraw", label: "Withdraw", icon: faMoneyBillTransfer },
   { to: "/referrals", label: "Referrals", icon: faUserGroup },
-  { to: "/profile", label: "Profile", icon: faUser },
 ];
 
 const ClientSidebar = () => {

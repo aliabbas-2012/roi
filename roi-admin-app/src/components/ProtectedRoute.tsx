@@ -1,11 +1,6 @@
 // @ts-nocheck
 "use client";
 
-import React from "react";
+import { ProtectedRoute as SharedProtectedRoute } from "roi-shared";
 
-const ProtectedRoute = ({ children }) => {
-  // Phase 1: keep all routes accessible until backend auth is integrated.
-  return children;
-};
-
-export default ProtectedRoute;
+export default SharedProtectedRoute;

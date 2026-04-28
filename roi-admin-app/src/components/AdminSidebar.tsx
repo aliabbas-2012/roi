@@ -10,7 +10,6 @@ import {
   faChartLine,
   faReceipt,
   faStore,
-  faUser,
   faUsers,
 } from "@fortawesome/free-solid-svg-icons";
 
@@ -20,7 +19,6 @@ const items = [
   { to: "/packages", label: "Packages", icon: faBoxOpen },
   { to: "/customers", label: "Customers", icon: faStore },
   { to: "/purchases", label: "Purchases", icon: faReceipt },
-  { to: "/profile", label: "Profile", icon: faUser },
 ];
 
 const AdminSidebar = () => {

@@ -1,7 +1,4 @@
 // @ts-nocheck
-import React from "react";
-import PlaceholderPage from "../../pages/PlaceholderPage";
+import { ProfileContent as SharedProfileContent } from "roi-shared";
 
-const ProfileContent = () => <PlaceholderPage title="Profile" />;
-
-export default ProfileContent;
+export default SharedProfileContent;

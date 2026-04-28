@@ -5,6 +5,9 @@ export { default as Modal } from "./components/Modal";
 export { default as Loader } from "./components/Loader";
 export { default as Card } from "./components/Card";
 export { default as Table } from "./components/Table";
+export { default as PlaceholderPage } from "./components/PlaceholderPage";
+export { default as ProtectedRoute } from "./components/ProtectedRoute";
+export { default as ProfileContent } from "./components/ProfileContent";
 
 export { default as AuthLayout } from "./layouts/AuthLayout";
 export { default as BaseDashboardLayout } from "./layouts/BaseDashboardLayout";

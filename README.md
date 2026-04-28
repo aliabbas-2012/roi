@@ -193,6 +193,15 @@ UI baseline:
 - `roi-shared/src/styles/global.scss`
 - App-specific style tuning in each app’s `src/styles/main.scss`
 
+Color tokens (single source of truth in `roi-shared/src/styles/variables.scss`):
+- Primary: `#1f6feb` (`$primary`)
+- Sidebar background: `#0d1b2a` (`$sidebar-bg`)
+- Sidebar active item: `#1b263b` (`$sidebar-active`)
+
+Navbar profile dropdown uses the shared primary color for:
+- Avatar background
+- Dropdown top user header
+
 ---
 
 ## Component Organization

@@ -1,31 +1,27 @@
 // @ts-nocheck
 "use client";
 
-import { useEffect, useState } from "react";
+import useAppDispatch from "./useAppDispatch";
+import useAppSelector from "./useAppSelector";
+import { initAuthSession, loginAction, logoutAction, registerClientAction } from "../store/actions";
+import { selectAuthError, selectAuthLoading, selectAuthSession, selectIsAuthenticated } from "../store/selectors";
 
 const useAuth = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setIsAuthenticated(Boolean(window.localStorage.getItem("roi_mock_token")));
-    }
-  }, []);
+  const dispatch = useAppDispatch();
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  const session = useAppSelector(selectAuthSession);
+  const loading = useAppSelector(selectAuthLoading);
+  const error = useAppSelector(selectAuthError);
 
   return {
     isAuthenticated,
-    login: () => {
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem("roi_mock_token", "token");
-        setIsAuthenticated(true);
-      }
-    },
-    logout: () => {
-      if (typeof window !== "undefined") {
-        window.localStorage.removeItem("roi_mock_token");
-        setIsAuthenticated(false);
-      }
-    },
+    session,
+    loading,
+    error,
+    initSession: () => dispatch(initAuthSession()),
+    login: (credentials) => dispatch(loginAction(credentials)),
+    registerClient: (payload) => dispatch(registerClientAction(payload)),
+    logout: () => dispatch(logoutAction()),
   };
 };
 

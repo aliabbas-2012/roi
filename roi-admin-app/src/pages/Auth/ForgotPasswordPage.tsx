@@ -2,8 +2,7 @@
 "use client";
 
 import React from "react";
-import { Button } from "react-bootstrap";
-import { Input } from "roi-shared";
+import { Button, Input } from "roi-shared";
 import AuthLayout from "../../layouts/AuthLayout";
 
 const ForgotPasswordPage = () => {

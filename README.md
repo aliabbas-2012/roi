@@ -24,15 +24,18 @@ This project is structured for scalability, reuse, and clean feature growth.
 - [Routing Design](#routing-design)
 - [Layout and UI System](#layout-and-ui-system)
 - [Styling and CSS Imports](#styling-and-css-imports)
+- [Responsive Design Notes](#responsive-design-notes)
 - [Component Organization](#component-organization)
 - [Shared Components in `roi-shared`](#shared-components-in-roi-shared)
 - [Next.js App Router Notes](#nextjs-app-router-notes)
 - [Alias and Imports](#alias-and-imports)
+- [Store Architecture](#store-architecture)
 - [State and Data Layer](#state-and-data-layer)
 - [Authentication Status](#authentication-status)
 - [Setup and Installation](#setup-and-installation)
 - [Run the Apps](#run-the-apps)
 - [Build Commands](#build-commands)
+- [Lint Commands](#lint-commands)
 - [Environment and Version Requirements](#environment-and-version-requirements)
 - [Git Ignore Rules](#git-ignore-rules)
 - [Current Phase Scope](#current-phase-scope)
@@ -45,6 +48,9 @@ This project is structured for scalability, reuse, and clean feature growth.
 ## Project Overview
 
 The ROI frontend is built as a **Yarn Workspace monorepo** with three packages:
+
+Brand/site display name used in UI and metadata:
+- **Return on Investment System**
 
 1. `roi-admin-app`  
    Merchant/Admin dashboard UI
@@ -113,7 +119,6 @@ roi-admin-app/src/
 ├── components/         # Feature and shared app-specific components
 ├── layouts/            # AdminLayout, AuthLayout
 ├── pages/              # Route entry modules (index files)
-├── routes/             # legacy route scaffold from initial setup
 └── styles/             # App-level styles
 ```
 
@@ -129,7 +134,6 @@ roi-client-app/src/
 ├── components/
 ├── layouts/
 ├── pages/
-├── routes/             # legacy route scaffold from initial setup
 └── styles/
 ```
 
@@ -140,8 +144,9 @@ Reusable modules shared by both apps:
 ```txt
 roi-shared/src/
 ├── components/   # Button, Input, Modal, Loader, Card, Table, PlaceholderPage, ProtectedRoute, ProfileContent
-├── hooks/        # useAuth, useDebounce, useToggle
+├── hooks/        # useAuth, store selector hooks
 ├── layouts/      # AuthLayout, BaseDashboardLayout
+├── store/        # actions, reducers, selectors, types, StoreProvider
 ├── styles/       # variables.scss, mixins.scss, global.scss
 └── utils/        # api abstraction, constants, formatters
 ```
@@ -168,6 +173,7 @@ Dashboard:
 ## Client Routes
 
 Public:
+- `/` (public landing page, no login required)
 - `/register`
 - `/login`
 - `/forgot-password`
@@ -188,7 +194,9 @@ Both apps include:
 
 - Responsive dashboard shell
 - Collapsible mobile sidebar using offcanvas pattern
+- Mobile sidebar close button via offcanvas header
 - Desktop sidebar + top navbar
+- Desktop sidebar toggle button in navbar (full sidebar <-> icon sidebar)
 - Main content area with card-based page containers
 - Improved spacing and color contrast for usability
 
@@ -200,6 +208,7 @@ Color tokens (single source of truth in `roi-shared/src/styles/variables.scss`):
 - Primary: `#1f6feb` (`$primary`)
 - Sidebar background: `#0d1b2a` (`$sidebar-bg`)
 - Sidebar active item: `#1b263b` (`$sidebar-active`)
+- Neon/theme tokens for text, borders, overlays, shadows, and gradients are also centralized in the same file.
 
 Navbar profile dropdown uses the shared primary color for:
 - Avatar background
@@ -213,6 +222,8 @@ Global styles are now loaded through each app `main.scss` file (single styleshee
 
 - `roi-admin-app/src/styles/main.scss`
 - `roi-client-app/src/styles/main.scss`
+- Both app `main.scss` files now consume shared color variables from:
+  - `@use "roi-shared/src/styles/variables.scss" as *;`
 
 Import order in `main.scss` is important for Sass:
 
@@ -225,6 +236,55 @@ Both app `layout.tsx` files now import only:
 ```ts
 import "../styles/main.scss";
 ```
+
+Neon dashboard style updates in `roi-shared/src/styles/global.scss` now include:
+- Dark gradient app background
+- Glow sidebar cards/links
+- Icon-only collapsed desktop sidebar styles
+- Bottom mobile navigation bar
+- Shared neon card/widget styles for dashboard blocks
+
+---
+
+## Responsive Design Notes
+
+The dashboard UI now follows a Bootstrap-first responsive strategy, with Sass used for targeted breakpoint polish.
+
+Implemented patterns:
+
+- Dashboard content uses Bootstrap grid classes (`row`, `col-12`, `col-sm-6`, `col-lg-4`) for responsive card/action layouts.
+- Desktop sidebar supports full and icon-only collapsed modes via navbar toggle.
+- Mobile sidebar uses offcanvas with explicit close button and auto-close on menu item click.
+- Bottom mobile navigation stays fixed and compact on small screens.
+- Shared breakpoints in `roi-shared/src/styles/global.scss` tune spacing/sizing for:
+  - `<1200px` (sidebar width reduction)
+  - `<992px` (mobile shell layout + navbar/grid adjustments)
+  - `<576px` (extra-small phones: tighter controls, fonts, paddings, bottom nav)
+
+Files updated for the responsive pass:
+
+- `roi-shared/src/styles/global.scss`
+- `roi-client-app/src/components/Dashboard/DashboardContent.tsx`
+- `roi-admin-app/src/components/Dashboard/DashboardContent.tsx`
+
+Guideline:
+- Prefer Bootstrap utility/grid classes first.
+- Add Sass only when Bootstrap utilities are not enough for pixel-level mobile polish.
+- Do not hardcode colors in style files; add/update tokens in `roi-shared/src/styles/variables.scss` and consume those tokens in app/shared Sass.
+
+Client landing page mobile responsiveness:
+
+- Landing page styles are in `roi-client-app/src/styles/main.scss`.
+- Mobile UX improvements include:
+  - better navbar wrapping/alignment for small screens
+  - touch-friendly sign-in/get-started controls
+  - stacked full-width hero CTA buttons on mobile
+  - adaptive stats grid (tablet and single-column small-phone layout)
+  - tighter section/card/footer spacing and typography on smaller viewports
+- Landing breakpoints are tuned for:
+  - `<992px` (tablet)
+  - `<768px` (small tablets / large phones)
+  - `<576px` (phones)
 
 ---
 
@@ -263,8 +323,62 @@ To reduce duplication between admin and client apps, these components are centra
 - `roi-shared/src/components/ProtectedRoute.tsx`
 - `roi-shared/src/components/PlaceholderPage.tsx`
 - `roi-shared/src/components/ProfileContent.tsx`
+- `roi-shared/src/components/Button.tsx` (project-wide shared button)
+- `roi-shared/src/components/RoleTopNavbar.tsx`
+- `roi-shared/src/components/RoleSidebar.tsx`
+- `roi-shared/src/components/RoleBottomNav.tsx`
+- `roi-shared/src/layouts/RoleDashboardLayout.tsx`
 
 They are exported from `roi-shared/src/index.ts` and consumed by both apps.
+
+Shared Button usage standard:
+
+- Use `Button` from `roi-shared` across app and shared features instead of importing `Button` from `react-bootstrap` directly.
+- Available visual variants:
+  - default / `primary` -> neon gradient button (`btn-neon`)
+  - `outline` -> neon outline button (`btn-neon-outline`)
+  - `ghost` -> soft glass button (`btn-neon-ghost`)
+- Button visual classes are defined in `roi-shared/src/styles/global.scss`.
+
+Shared password input standard:
+
+- Use `PasswordInput` from `roi-shared` for all password fields site-wide.
+- `PasswordInput` includes built-in eye icon toggle to show/hide password text.
+- Keep regular `Input` for non-password fields.
+
+Shared phone input standard:
+
+- Use `PhoneNumberInput` from `roi-shared` for phone fields that require flag + country code UX.
+- `PhoneNumberInput` is built on `react-phone-input-2` and returns normalized values:
+  - `countryCode` (e.g. `+92`)
+  - `phoneNumber` (national digits)
+- Client register form uses this shared component.
+- Auth form visual consistency: email and password inputs are styled to match the same dark/neon input design used by the shared phone input (border, background, radius, focus glow).
+- Browser autofill styling is overridden for auth inputs so saved email/password values keep the same dark/neon theme instead of default bright browser autofill colors.
+
+Shared form error text standard:
+
+- Use `FormErrorText` from `roi-shared` to render field-level validation messages across forms.
+- `FormErrorText` centralizes error color/display spacing so login/register/phone-field errors stay consistent.
+- Auth login and client register forms now use this shared error component instead of repeated inline `Form.Text` blocks.
+
+Shared auth validation standard:
+
+- Auth field validation logic is centralized in `roi-shared/src/utils/validation.ts`.
+- Reusable validators:
+  - `validateLoginFields`
+  - `validateRegisterFields`
+- These validators are used by shared auth forms (`AuthLoginForm`, `ClientRegisterForm`) to avoid duplicate regex/rule logic.
+- Validation regex/rules/messages now have a single source of truth for easier maintenance.
+
+Shared dashboard shell extraction notes:
+
+- Admin/client layout wrappers now delegate core shell behavior to shared `RoleDashboardLayout`.
+- Admin/client navbar/sidebar/bottom-nav files now act as thin config wrappers (routes/icons/ids) on top of:
+  - `RoleTopNavbar`
+  - `RoleSidebar`
+  - `RoleBottomNav`
+- This reduces duplication while preserving app-specific navigation structure.
 
 ---
 
@@ -286,6 +400,16 @@ Important clarification:
 
 Route group cleanup:
 - Old empty route-group folders like `src/app/(dashboard)` were removed from both apps to keep structure clean.
+
+Navbar behavior notes:
+- Night/moon icon was removed from top navbar.
+- Left navbar action button is now reused as sidebar toggle:
+  - Desktop: toggles full sidebar <-> icon sidebar.
+  - Mobile: opens sidebar offcanvas.
+- FontAwesome SSR stabilization added in both app root layouts:
+  - `import "@fortawesome/fontawesome-svg-core/styles.css"`
+  - `config.autoAddCss = false`
+  - This prevents oversized icon flash for a moment on hard refresh.
 
 ---
 
@@ -309,12 +433,96 @@ and component barrel exports:
 
 ---
 
+## Store Architecture
+
+A shared store/reducer/action pattern (inspired by dotone-view-admin structure) is now implemented for ROI core features.
+
+Core structure in `roi-shared/src/store`:
+
+- `types.ts` -> async action type builders and feature type constants
+- `api/` -> store-level API wrappers (`authApi`, `dashboardApi`)
+- `actions/` -> async thunk-like actions (`auth`, `dashboard`)
+- `reducers/` -> feature reducers + root reducer
+- `selectors/` -> reusable selector helpers
+- `index.tsx` -> `StoreProvider`, `useStoreState`, `useStoreDispatch`
+
+Shared hooks for store usage:
+
+- `useAppDispatch`
+- `useAppSelector`
+- `useShallowEqualSelector`
+- `useFilterSelector`
+
+Current features migrated to store flow:
+
+- Auth:
+  - login
+  - client register
+  - logout
+  - init session from storage
+- Dashboard:
+  - fetch summary from mock API (`GET /dashboard/summary`)
+
+Provider wiring:
+
+- Both app providers wrap UI with shared `StoreProvider` + `QueryClientProvider`.
+
+---
+
 ## State and Data Layer
 
 - Global data-fetching setup via **React Query** (`QueryClientProvider`)
 - Base query defaults configured in each app provider
-- API layer currently mocked/abstracted in `roi-shared` utils
+- API layer currently mocked/abstracted in `roi-shared` utils (and consumed through shared store actions)
 - No real backend data connection in phase 1
+- Client landing page (`roi-client-app/src/app/page.tsx`) is fully static UI and does not call any API endpoint
+
+Mock auth API endpoints currently implemented:
+
+- `POST /auth/login`
+- `POST /auth/register/client`
+- `POST /auth/logout`
+- `GET /auth/session`
+
+Shared implementation lives in:
+
+- `roi-shared/src/utils/api.ts`
+- `roi-shared/src/utils/mockAuth.ts`
+- `roi-shared/src/components/AuthLoginForm.tsx`
+- `roi-shared/src/components/ClientRegisterForm.tsx`
+- `roi-shared/src/components/ProtectedRoute.tsx`
+
+Default mock login credentials:
+
+- Admin app:
+  - Email: `admin@roi.com`
+  - Password: `Admin@123`
+- Client app:
+  - Email: `client@roi.com`
+  - Password: `Client@123`
+
+Auth UX notes:
+
+- Login form is vertically centered via shared `AuthLayout`.
+- Client login includes a signup/register link at form bottom.
+- Client register form is fully functional via mock API and store actions.
+- Client register fields:
+  - `firstName`
+  - `lastName`
+  - `email`
+  - `countryCode` + `phoneNumber` (flag + country code dropdown shown in phone field)
+  - `password` (uses shared `PasswordInput`)
+- Register phone field uses `react-phone-input-2` for automatic flag/country-code selection UX.
+- Register validation covers all fields:
+  - first/last name format
+  - email format
+  - phone digits length and country-code format
+  - password complexity (upper/lower/number/special, min 8 chars)
+- Shared `PasswordInput` provides password visibility toggle (eye icon button inside password field).
+- Protected dashboard routes now redirect to `/login` if no mock session exists.
+- Logout now clears session from both top-navbar and sidebar logout actions in admin and client apps.
+- Top-navbar dropdown logout is functional in both apps and clears mock session before redirecting to `/login`.
+- After logout, protected routes cannot be reopened by direct URL without logging in again.
 
 ---
 
@@ -323,8 +531,8 @@ and component barrel exports:
 At this stage:
 
 - Backend auth flow is **not integrated**
-- Protected wrappers are currently relaxed for development so pages are accessible
-- Login pages are UI placeholders only
+- Mock auth is active for admin and client login/register
+- Protected dashboard routes are blocked without session and redirect to `/login`
 
 ---
 
@@ -373,6 +581,39 @@ Build per app:
 yarn build:admin
 yarn build:client
 ```
+
+---
+
+## Lint Commands
+
+You can now lint the monorepo from root with:
+
+```bash
+yarn lint
+```
+
+Run lint per app:
+
+```bash
+yarn lint:admin
+yarn lint:client
+```
+
+These map to workspace scripts:
+
+- `roi-admin-app/package.json` -> `lint: next lint`
+- `roi-client-app/package.json` -> `lint: next lint`
+
+Root scripts in `package.json`:
+
+- `lint:admin` -> `yarn workspace roi-admin-app lint`
+- `lint:client` -> `yarn workspace roi-client-app lint`
+- `lint` -> runs both admin and client lint sequentially
+
+Lint setup dependencies (root devDependencies):
+
+- `eslint`
+- `eslint-config-next`
 
 ---
 

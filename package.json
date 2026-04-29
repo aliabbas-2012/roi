@@ -12,24 +12,30 @@
     "dev:client": "yarn workspace roi-client-app dev",
     "build:admin": "yarn workspace roi-admin-app build",
     "build:client": "yarn workspace roi-client-app build",
-    "build": "yarn build:admin && yarn build:client"
+    "build": "yarn build:admin && yarn build:client",
+    "lint:admin": "yarn workspace roi-admin-app lint",
+    "lint:client": "yarn workspace roi-client-app lint",
+    "lint": "yarn lint:admin && yarn lint:client"
   },
   "dependencies": {
-    "next": "^15.3.1",
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@tanstack/react-query": "^5.66.0",
     "bootstrap": "^5.3.3",
+    "next": "^15.3.1",
     "react": "^19.0.0",
     "react-bootstrap": "^2.10.7",
     "react-dom": "^19.0.0",
+    "react-phone-input-2": "^2.15.1",
     "sass": "^1.85.0"
   },
   "devDependencies": {
     "@types/node": "^22.15.17",
     "@types/react": "^19.1.4",
     "@types/react-dom": "^19.1.4",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "15.3.1",
     "typescript": "^5.8.3"
   }
 }

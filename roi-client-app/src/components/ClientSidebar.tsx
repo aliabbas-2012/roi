@@ -2,16 +2,15 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
+  faArrowRightFromBracket,
   faChartPie,
   faHandHoldingDollar,
   faMoneyBillTransfer,
   faUserGroup,
   faWallet,
 } from "@fortawesome/free-solid-svg-icons";
+import { RoleSidebar } from "roi-shared";
 
 const items = [
   { to: "/dashboard", label: "Dashboard", icon: faChartPie },
@@ -19,28 +18,16 @@ const items = [
   { to: "/investments", label: "Investments", icon: faHandHoldingDollar },
   { to: "/withdraw", label: "Withdraw", icon: faMoneyBillTransfer },
   { to: "/referrals", label: "Referrals", icon: faUserGroup },
+  { to: "/login", label: "Logout", icon: faArrowRightFromBracket, isLogout: true },
 ];
 
-const ClientSidebar = () => {
-  const pathname = usePathname();
-
-  return (
-    <div className="sidebar-panel p-3">
-      <h5 className="mb-4">ROI Client</h5>
-      <div className="d-flex flex-column gap-1">
-        {items.map((item) => (
-          <Link
-            key={item.to}
-            href={item.to}
-            className={`sidebar-link ${pathname === item.to ? "active" : ""}`}
-          >
-            <FontAwesomeIcon icon={item.icon} />
-            <span>{item.label}</span>
-          </Link>
-        ))}
-      </div>
-    </div>
-  );
-};
+const ClientSidebar = ({ collapsed = false, onItemClick }) => (
+  <RoleSidebar
+    items={items}
+    collapsed={collapsed}
+    onItemClick={onItemClick}
+    user={{ name: "Akbar Ali", email: "vgsync99@gmail.com", joinedAt: "2026-04-27 11:03 PM" }}
+  />
+);
 
 export default ClientSidebar;

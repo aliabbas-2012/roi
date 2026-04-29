@@ -3,3 +3,89 @@ $secondary: #495057;
 $sidebar-bg: #0d1b2a;
 $sidebar-active: #1b263b;
 $surface: #ffffff;
+
+// Base text/background
+$text-primary: #edf2ff;
+$text-on-dark: #ffffff;
+$text-muted-on-dark: rgba(233, 230, 255, 0.9);
+$text-soft: #f0edff;
+$text-brand: #7fd5ff;
+$text-brand-soft: #77d7ff;
+$text-menu: #e8ddff;
+$text-bottom-nav: #cdc4ff;
+$text-card: #f2ecff;
+$text-widget-label: #9ddfff;
+
+// App backgrounds
+$app-bg-start: #1a0f43;
+$app-bg-mid: #090022;
+$app-bg-end: #060018;
+$navbar-bg: rgba(12, 2, 37, 0.95);
+$panel-bg-strong: #140533;
+$panel-bg-soft: #120430;
+
+// Borders/shadows and overlays
+$border-glow-soft: rgba(110, 71, 248, 0.3);
+$border-card-soft: rgba(255, 255, 255, 0.13);
+$border-link: rgba(137, 84, 255, 0.5);
+$border-navbar: rgba(130, 81, 255, 0.35);
+$border-dropdown: rgba(122, 76, 255, 0.45);
+$border-dropdown-divider: rgba(122, 76, 255, 0.35);
+$border-widget: rgba(128, 89, 255, 0.35);
+$border-action: rgba(129, 85, 255, 0.4);
+$border-dashboard-card: rgba(121, 80, 255, 0.3);
+$border-auth-card: rgba(130, 85, 255, 0.35);
+$border-mobile-nav: rgba(124, 79, 255, 0.45);
+$border-offcanvas: rgba(123, 79, 255, 0.35);
+
+$overlay-white-03: rgba(255, 255, 255, 0.03);
+$overlay-white-04: rgba(255, 255, 255, 0.04);
+$overlay-white-05: rgba(255, 255, 255, 0.05);
+$overlay-white-08: rgba(255, 255, 255, 0.08);
+$overlay-white-10: rgba(255, 255, 255, 0.1);
+$overlay-white-15: rgba(255, 255, 255, 0.15);
+$overlay-white-20: rgba(255, 255, 255, 0.2);
+$overlay-sidebar-link-bg: rgba(31, 8, 76, 0.8);
+$overlay-dropdown-hover: rgba(123, 70, 255, 0.2);
+$overlay-auth-card: rgba(12, 2, 37, 0.9);
+$overlay-mobile-nav-bg: rgba(20, 5, 49, 0.92);
+
+$shadow-avatar: 0 0 14px rgba(255, 0, 200, 0.5);
+$shadow-link: 0 0 15px rgba(98, 45, 243, 0.25);
+$shadow-brand: 0 0 8px rgba(95, 198, 255, 0.55);
+$shadow-avatar-btn: 0 0 10px rgba(255, 0, 187, 0.5);
+$shadow-dropdown: 0 10px 28px rgba(10, 1, 28, 0.65);
+$shadow-card: 0 12px 28px rgba(3, 0, 14, 0.45);
+$shadow-auth-card: 0 10px 30px rgba(7, 1, 24, 0.6);
+$shadow-mobile-nav: 0 8px 28px rgba(9, 1, 26, 0.7);
+
+// Accent colors
+$accent-pink: #ff00b7;
+$accent-cyan: #00c0ff;
+$accent-violet: #7f47ff;
+$accent-magenta: #ff3dbf;
+$accent-cyan-soft: #66d9ff;
+$accent-pink-soft: #ff59c7;
+
+// Gradients
+$gradient-body: radial-gradient(circle at top, $app-bg-start 0%, $app-bg-mid 45%, $app-bg-end 100%);
+$gradient-sidebar: linear-gradient(180deg, rgba(23, 8, 64, 0.95) 0%, rgba(12, 2, 35, 0.95) 100%);
+$gradient-sidebar-active: linear-gradient(110deg, $accent-cyan 0%, $accent-violet 45%, $accent-magenta 100%);
+$gradient-avatar-btn: linear-gradient(135deg, #ff00bb 0%, #8a48ff 100%);
+$gradient-avatar-btn-hover: linear-gradient(135deg, #ff23c8 0%, #7b3ef1 100%);
+$gradient-dropdown-head: linear-gradient(120deg, #00b7ff 0%, #8557ff 50%, #ff2ec4 100%);
+$gradient-mobile-active: linear-gradient(140deg, #00beff 0%, #7154ff 100%);
+$gradient-widget-main: linear-gradient(
+  130deg,
+  rgba(44, 208, 196, 0.35) 0%,
+  rgba(111, 78, 252, 0.5) 45%,
+  rgba(255, 59, 182, 0.42) 100%
+);
+$gradient-action-deposit: linear-gradient(140deg, rgba(30, 204, 178, 0.45) 0%, rgba(31, 145, 255, 0.42) 100%);
+$gradient-action-withdraw: linear-gradient(140deg, rgba(248, 70, 211, 0.45) 0%, rgba(111, 88, 255, 0.42) 100%);
+
+// App-specific sidebar gradients
+$admin-sidebar-start: #0b2545;
+$admin-sidebar-end: #0d1b2a;
+$client-sidebar-start: #1b4965;
+$client-sidebar-end: #0f2f45;

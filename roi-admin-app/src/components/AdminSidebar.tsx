@@ -2,16 +2,15 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
+  faArrowRightFromBracket,
   faBoxOpen,
   faChartLine,
   faReceipt,
   faStore,
   faUsers,
 } from "@fortawesome/free-solid-svg-icons";
+import { RoleSidebar } from "roi-shared";
 
 const items = [
   { to: "/dashboard", label: "Dashboard", icon: faChartLine },
@@ -19,28 +18,16 @@ const items = [
   { to: "/packages", label: "Packages", icon: faBoxOpen },
   { to: "/customers", label: "Customers", icon: faStore },
   { to: "/purchases", label: "Purchases", icon: faReceipt },
+  { to: "/login", label: "Logout", icon: faArrowRightFromBracket, isLogout: true },
 ];
 
-const AdminSidebar = () => {
-  const pathname = usePathname();
-
-  return (
-    <div className="sidebar-panel p-3">
-      <h5 className="mb-4">ROI Admin</h5>
-      <div className="d-flex flex-column gap-1">
-        {items.map((item) => (
-          <Link
-            key={item.to}
-            href={item.to}
-            className={`sidebar-link ${pathname === item.to ? "active" : ""}`}
-          >
-            <FontAwesomeIcon icon={item.icon} />
-            <span>{item.label}</span>
-          </Link>
-        ))}
-      </div>
-    </div>
-  );
-};
+const AdminSidebar = ({ collapsed = false, onItemClick }) => (
+  <RoleSidebar
+    items={items}
+    collapsed={collapsed}
+    onItemClick={onItemClick}
+    user={{ name: "Akbar Ali", email: "vgsync99@gmail.com", joinedAt: "2026-04-27 11:03 PM" }}
+  />
+);
 
 export default AdminSidebar;

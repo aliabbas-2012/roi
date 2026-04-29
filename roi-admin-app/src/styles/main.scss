@@ -1,8 +1,9 @@
 @use "roi-shared/src/styles/global.scss";
+@use "roi-shared/src/styles/variables.scss" as *;
 @import "bootstrap/dist/css/bootstrap.min.css";
 
 .sidebar-panel {
-  background: linear-gradient(180deg, #0b2545 0%, #0d1b2a 100%);
+  background: linear-gradient(180deg, $admin-sidebar-start 0%, $admin-sidebar-end 100%);
 }
 
 @media (max-width: 991.98px) {

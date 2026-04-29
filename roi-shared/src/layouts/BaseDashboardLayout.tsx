@@ -2,7 +2,7 @@
 import React from "react";
 import { Container } from "react-bootstrap";
 
-const BaseDashboardLayout = ({ navbar, sidebar, children }) => {
+const BaseDashboardLayout = ({ navbar, sidebar, mobileNav, children }) => {
   return (
     <div className="dashboard-shell">
       {sidebar}
@@ -11,6 +11,7 @@ const BaseDashboardLayout = ({ navbar, sidebar, children }) => {
         <Container fluid className="py-4">
           {children}
         </Container>
+        {mobileNav}
       </div>
     </div>
   );

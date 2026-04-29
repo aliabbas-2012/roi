@@ -3,6 +3,7 @@
 
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { StoreProvider } from "roi-shared";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -15,7 +16,11 @@ const queryClient = new QueryClient({
 });
 
 const Providers = ({ children }) => {
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  return (
+    <StoreProvider>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    </StoreProvider>
+  );
 };
 
 export default Providers;

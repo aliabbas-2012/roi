@@ -11,12 +11,13 @@ import useAuth from "../hooks/useAuth";
 const RoleSidebar = ({ items = [], collapsed = false, onItemClick, user }) => {
   const pathname = usePathname();
   const router = useRouter();
-  const { logout } = useAuth();
+  const { logout, session } = useAuth();
 
+  const authUser = session?.user;
   const displayUser = user || {
-    name: "Akbar Ali",
-    email: "vgsync99@gmail.com",
-    joinedAt: "2026-04-27 11:03 PM",
+    name: authUser?.name || "User",
+    email: authUser?.email || "user@example.com",
+    joinedAt: "Active account",
   };
 
   const handleLogout = async () => {

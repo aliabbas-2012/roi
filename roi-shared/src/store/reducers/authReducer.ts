@@ -19,10 +19,11 @@ const authReducer = (state = initialState, action) => {
 
     case authTypes.LOGIN.REQUEST:
     case authTypes.REGISTER_CLIENT.REQUEST:
+    case authTypes.RECOVER_PASSWORD.REQUEST:
+    case authTypes.UPDATE_USER.REQUEST:
       return { ...state, loading: true, error: null };
 
     case authTypes.LOGIN.SUCCESS:
-    case authTypes.REGISTER_CLIENT.SUCCESS:
       return {
         ...state,
         loading: false,
@@ -31,8 +32,27 @@ const authReducer = (state = initialState, action) => {
         session: action.payload,
       };
 
+    case authTypes.REGISTER_CLIENT.SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        error: null,
+        isAuthenticated: false,
+        session: null,
+      };
+
+    case authTypes.RECOVER_PASSWORD.SUCCESS:
+    case authTypes.UPDATE_USER.SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        error: null,
+      };
+
     case authTypes.LOGIN.FAILURE:
     case authTypes.REGISTER_CLIENT.FAILURE:
+    case authTypes.RECOVER_PASSWORD.FAILURE:
+    case authTypes.UPDATE_USER.FAILURE:
       return {
         ...state,
         loading: false,

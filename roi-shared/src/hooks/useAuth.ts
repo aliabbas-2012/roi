@@ -3,7 +3,14 @@
 
 import useAppDispatch from "./useAppDispatch";
 import useAppSelector from "./useAppSelector";
-import { initAuthSession, loginAction, logoutAction, registerClientAction } from "../store/actions";
+import {
+  initAuthSession,
+  loginAction,
+  logoutAction,
+  recoverPasswordAction,
+  registerClientAction,
+  updateUserAction,
+} from "../store/actions";
 import { selectAuthError, selectAuthLoading, selectAuthSession, selectIsAuthenticated } from "../store/selectors";
 
 const useAuth = () => {
@@ -21,6 +28,8 @@ const useAuth = () => {
     initSession: () => dispatch(initAuthSession()),
     login: (credentials) => dispatch(loginAction(credentials)),
     registerClient: (payload) => dispatch(registerClientAction(payload)),
+    recoverPassword: (payload) => dispatch(recoverPasswordAction(payload)),
+    updateUser: (payload) => dispatch(updateUserAction(payload)),
     logout: () => dispatch(logoutAction()),
   };
 };

@@ -4,7 +4,7 @@ import ProtectedRoute from "../components/ProtectedRoute";
 
 export default function DashboardShell({ children }) {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requiredRole="admin">
       <AdminLayout>{children}</AdminLayout>
     </ProtectedRoute>
   );

@@ -49,7 +49,7 @@ const ClientRegisterForm = () => {
         phoneNumber: phoneNumber.trim(),
         password,
       });
-      router.push("/dashboard");
+      router.push("/login?registered=1");
     } catch (err) {
       setError(err?.message || authError || "Unable to create account.");
     } finally {

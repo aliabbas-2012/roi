@@ -10,6 +10,8 @@ export const authTypes = {
   INIT: "AUTH_INIT",
   LOGIN: buildAsyncTypes("AUTH_LOGIN"),
   REGISTER_CLIENT: buildAsyncTypes("AUTH_REGISTER_CLIENT"),
+  RECOVER_PASSWORD: buildAsyncTypes("AUTH_RECOVER_PASSWORD"),
+  UPDATE_USER: buildAsyncTypes("AUTH_UPDATE_USER"),
   LOGOUT: "AUTH_LOGOUT",
 };
 

@@ -1,7 +1,7 @@
 // @ts-nocheck
 "use client";
 
-import React, { useState } from "react";
+import React, { Suspense, useState } from "react";
 import Link from "next/link";
 import { Alert } from "react-bootstrap";
 import Button from "./Button";
@@ -9,8 +9,22 @@ import Input from "./Input";
 import PasswordInput from "./PasswordInput";
 import FormErrorText from "./FormErrorText";
 import useAuth from "../hooks/useAuth";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { validateLoginFields } from "../utils/validation";
+
+const AuthLoginQueryAlerts = () => {
+  const searchParams = useSearchParams();
+  return (
+    <>
+      {searchParams.get("registered") === "1" ? (
+        <Alert variant="success">Account created successfully. Please login.</Alert>
+      ) : null}
+      {searchParams.get("passwordUpdated") === "1" ? (
+        <Alert variant="success">Password updated successfully, please login.</Alert>
+      ) : null}
+    </>
+  );
+};
 
 const AuthLoginForm = ({ role, emailPlaceholder, showRegisterLink = false, registerHref = "/register" }) => {
   const router = useRouter();
@@ -40,6 +54,9 @@ const AuthLoginForm = ({ role, emailPlaceholder, showRegisterLink = false, regis
 
   return (
     <form onSubmit={handleSubmit} noValidate>
+      <Suspense fallback={null}>
+        <AuthLoginQueryAlerts />
+      </Suspense>
       {error ? <Alert variant="danger">{error}</Alert> : null}
       <Input
         label="Email"

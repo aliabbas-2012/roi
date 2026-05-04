@@ -11,13 +11,14 @@ import useAuth from "../hooks/useAuth";
 
 const RoleTopNavbar = ({ leftAction, dropdownId = "user-dropdown", brand = "ROI", profileHref = "/profile", user }) => {
   const router = useRouter();
-  const { logout } = useAuth();
+  const { logout, session } = useAuth();
 
+  const authUser = session?.user;
   const displayUser = user || {
-    name: "Ali Abbas",
-    email: "aliabbasrs2023@gmail.com",
-    id: "1152",
-    initials: "AA",
+    name: authUser?.name || "User",
+    email: authUser?.email || "user@example.com",
+    id: authUser?.id || "-",
+    initials: authUser?.initials || "US",
   };
 
   const handleLogout = async () => {

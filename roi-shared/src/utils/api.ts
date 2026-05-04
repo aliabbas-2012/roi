@@ -1,11 +1,8 @@
 // @ts-nocheck
-import { clearSession, getSession, mockLogin, mockRegisterClient } from "./mockAuth";
+import { getSession } from "./authSession";
 
 export const apiClient = {
   async get(path, options = {}) {
-    if (path === "/auth/session") {
-      return Promise.resolve({ path, method: "GET", options, data: getSession() });
-    }
     if (path === "/dashboard/summary") {
       const role = getSession()?.user?.role || "client";
       const data =
@@ -35,21 +32,6 @@ export const apiClient = {
     return Promise.resolve({ path, method: "GET", options, data: [] });
   },
   async post(path, body = {}, options = {}) {
-    if (path === "/auth/login") {
-      const data = await mockLogin(body);
-      return Promise.resolve({ path, method: "POST", options, body, data });
-    }
-
-    if (path === "/auth/register/client") {
-      const data = await mockRegisterClient(body);
-      return Promise.resolve({ path, method: "POST", options, body, data });
-    }
-
-    if (path === "/auth/logout") {
-      clearSession();
-      return Promise.resolve({ path, method: "POST", options, body, data: { success: true } });
-    }
-
     return Promise.resolve({ path, method: "POST", options, body });
   },
   async patch(path, body = {}, options = {}) {

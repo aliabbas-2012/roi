@@ -36,6 +36,7 @@ This project is structured for scalability, reuse, and clean feature growth.
 - [Run the Apps](#run-the-apps)
 - [Build Commands](#build-commands)
 - [Lint Commands](#lint-commands)
+- [TypeScript Migration](#typescript-migration)
 - [Environment and Version Requirements](#environment-and-version-requirements)
 - [Git Ignore Rules](#git-ignore-rules)
 - [Current Phase Scope](#current-phase-scope)
@@ -71,7 +72,7 @@ The goal is to maintain one source of truth for reusable frontend building block
 - Each app uses **Next.js + React**
 - Shared package provides reusable UI and logic
 - Dashboard pages use a feature-oriented structure:
-  - Route entry at `pages/<Feature>/index.jsx`
+  - Route entry at `pages/<Feature>/index.tsx` (or legacy `.jsx`)
   - UI pieces in `components/<Feature>/...`
 - Clean import style using `@components` alias from a central `components/index.ts` barrel file
 
@@ -86,6 +87,7 @@ The goal is to maintain one source of truth for reusable frontend building block
 - **Sass / SCSS**
 - **FontAwesome**
 - **@tanstack/react-query**
+- **HTTP Auth API** (REST; base URL from env)
 - **Yarn Workspaces**
 
 ---
@@ -160,6 +162,10 @@ roi-shared/src/
 Public:
 - `/login`
 - `/forgot-password`
+- `/update-user` (password/email update from recovery link in the URL hash)
+
+Other:
+- `/unauthorized` (role mismatch or access denied)
 
 Dashboard:
 - `/dashboard`
@@ -177,6 +183,10 @@ Public:
 - `/register`
 - `/login`
 - `/forgot-password`
+- `/update-user` (password update from recovery link in the URL hash)
+
+Other:
+- `/unauthorized`
 
 Dashboard:
 - `/dashboard`
@@ -292,7 +302,7 @@ Client landing page mobile responsiveness:
 
 Current project follows:
 
-- `pages/<Feature>/index.jsx`  
+- `pages/<Feature>/index.tsx` (or `.jsx`)  
   route entry and screen-level wiring
 
 - `components/<Feature>/...`  
@@ -304,7 +314,7 @@ Example:
 src/
 ├── pages/
 │   └── Users/
-│       └── index.jsx
+│       └── index.tsx
 └── components/
     └── Users/
         ├── UsersContent.jsx
@@ -320,6 +330,10 @@ This keeps route files minimal and feature UI modular.
 
 To reduce duplication between admin and client apps, these components are centralized in `roi-shared`:
 
+- `roi-shared/src/components/AuthLoginForm.tsx`
+- `roi-shared/src/components/AuthForgotPasswordForm.tsx`
+- `roi-shared/src/components/AuthUpdateUserForm.tsx`
+- `roi-shared/src/components/ClientRegisterForm.tsx`
 - `roi-shared/src/components/ProtectedRoute.tsx`
 - `roi-shared/src/components/PlaceholderPage.tsx`
 - `roi-shared/src/components/ProfileContent.tsx`
@@ -368,7 +382,9 @@ Shared auth validation standard:
 - Reusable validators:
   - `validateLoginFields`
   - `validateRegisterFields`
-- These validators are used by shared auth forms (`AuthLoginForm`, `ClientRegisterForm`) to avoid duplicate regex/rule logic.
+  - `validateRecoverPasswordFields`
+  - `validateUpdateUserFields`
+- These validators are used by shared auth forms (`AuthLoginForm`, `ClientRegisterForm`, `AuthForgotPasswordForm`, `AuthUpdateUserForm`) to avoid duplicate regex/rule logic.
 - Validation regex/rules/messages now have a single source of truth for easier maintenance.
 
 Shared dashboard shell extraction notes:
@@ -461,7 +477,7 @@ Current features migrated to store flow:
   - logout
   - init session from storage
 - Dashboard:
-  - fetch summary from mock API (`GET /dashboard/summary`)
+  - fetch summary from shared API layer (`GET /dashboard/summary`)
 
 Provider wiring:
 
@@ -473,39 +489,69 @@ Provider wiring:
 
 - Global data-fetching setup via **React Query** (`QueryClientProvider`)
 - Base query defaults configured in each app provider
-- API layer currently mocked/abstracted in `roi-shared` utils (and consumed through shared store actions)
-- No real backend data connection in phase 1
+- Auth uses a **hosted HTTP auth API** configured with `NEXT_PUBLIC_AUTH_*` env vars (`roi-shared/src/store/api/authApi.ts`). There is **no** bundled auth SDK; requests use `fetch` to standard paths such as `/auth/v1/token`, `/auth/v1/signup`, `/auth/v1/recover`, `/auth/v1/user`.
+- Non-auth “app API” calls go through `roi-shared/src/utils/api.ts` (`apiClient`). Today `GET /dashboard/summary` is a **local mock** (role-based placeholder numbers); replace `apiClient` when wiring a real backend.
 - Client landing page (`roi-client-app/src/app/page.tsx`) is fully static UI and does not call any API endpoint
 
-Mock auth API endpoints currently implemented:
+Auth/profile client implementation lives in:
 
-- `POST /auth/login`
-- `POST /auth/register/client`
-- `POST /auth/logout`
-- `GET /auth/session`
-
-Shared implementation lives in:
-
-- `roi-shared/src/utils/api.ts`
-- `roi-shared/src/utils/mockAuth.ts`
+- `roi-shared/src/store/api/authApi.ts`
+- `roi-shared/src/store/actions/authActions.ts`
 - `roi-shared/src/components/AuthLoginForm.tsx`
 - `roi-shared/src/components/ClientRegisterForm.tsx`
 - `roi-shared/src/components/ProtectedRoute.tsx`
+- `roi-shared/src/utils/authSession.ts`
 
-Default mock login credentials:
+Auth API environment variables:
 
-- Admin app:
-  - Email: `admin@roi.com`
-  - Password: `Admin@123`
-- Client app:
-  - Email: `client@roi.com`
-  - Password: `Client@123`
+- `NEXT_PUBLIC_AUTH_API_URL` — base URL of the auth HTTP API (no trailing slash)
+- `NEXT_PUBLIC_AUTH_ANON_KEY` — public anon key the auth service expects in `apikey` / `Authorization` headers
+- `NEXT_PUBLIC_AUTH_RECOVER_REDIRECT_TO` (optional, for password reset link `redirect_to`)
+
+Configured in:
+
+- root `.env`
+- `roi-admin-app/.env`
+- `roi-client-app/.env`
+
+Typical database layout when using a hosted auth provider:
+
+- `auth.users` (managed by the auth service; signup sends `data.*` in user metadata)
+- `public.profiles` (optional; this frontend does not call a separate profiles REST API on signup—sync may be done by triggers or a future backend):
+  - `id`
+  - `email`
+  - `role`
+  - `first_name`
+  - `last_name`
+  - `phone_number`
+  - `country_code`
+  - `created_at`
+  - `updated_at`
+
+Important:
+
+- Do not store passwords in `public.profiles`.
+- Passwords are handled by the auth service, not stored in app tables.
+- Signup uses the auth REST API, for example:
+  - `POST {NEXT_PUBLIC_AUTH_API_URL}/auth/v1/signup`
+  - payload shape:
+    - `email`
+    - `password`
+    - `data.firstName`
+    - `data.lastName`
+    - `data.phone`
+    - `data.countryCode`
+    - `data.role` (`client`)
 
 Auth UX notes:
 
 - Login form is vertically centered via shared `AuthLayout`.
 - Client login includes a signup/register link at form bottom.
-- Client register form is fully functional via mock API and store actions.
+- Forgot-password form calls the auth service recovery endpoint in both admin and client apps.
+- Shared forgot-password UI uses `AuthForgotPasswordForm` from `roi-shared`.
+- Recovery links redirect users to `/update-user` page.
+- Shared update-user/reset UI uses `AuthUpdateUserForm` from `roi-shared` for both admin and client apps.
+- Client register form is fully functional via the shared auth API and profile flow.
 - Client register fields:
   - `firstName`
   - `lastName`
@@ -518,11 +564,23 @@ Auth UX notes:
   - email format
   - phone digits length and country-code format
   - password complexity (upper/lower/number/special, min 8 chars)
+- On client signup, the app sends the signup payload to the auth API and redirects to login with a success alert.
+- Login checks user metadata role to enforce app access:
+  - admin app requires role `admin`
+  - client app requires role `client`
 - Shared `PasswordInput` provides password visibility toggle (eye icon button inside password field).
-- Protected dashboard routes now redirect to `/login` if no mock session exists.
+- Protected dashboard routes redirect to `/login` if there is no active session.
 - Logout now clears session from both top-navbar and sidebar logout actions in admin and client apps.
-- Top-navbar dropdown logout is functional in both apps and clears mock session before redirecting to `/login`.
+- Top-navbar dropdown logout clears the session before redirecting to `/login`.
 - After logout, protected routes cannot be reopened by direct URL without logging in again.
+- Recovery email endpoint used:
+  - `POST /auth/v1/recover`
+- Update user endpoint used from recovery link session:
+  - `PUT /auth/v1/user`
+- On successful update user, app redirects to `/login?passwordUpdated=1` and shows:
+  - "Password updated successfully, please login."
+- Failed login and other auth API errors are surfaced in form alerts. Error messages are normalized in `authApi.ts` from common response shapes (`msg`, `message`, `error_description`, `error`, HTTP status).
+- `AuthLoginForm` wraps `useSearchParams` (success banners for `?registered=1` and `?passwordUpdated=1`) in a **React `Suspense`** boundary so `/login` prerenders cleanly under Next.js 15.
 
 ---
 
@@ -530,9 +588,11 @@ Auth UX notes:
 
 At this stage:
 
-- Backend auth flow is **not integrated**
-- Mock auth is active for admin and client login/register
+- HTTP auth API is integrated for admin/client login and client signup
+- `auth.users` stores authentication credentials (managed by the auth service)
+- `public.profiles` stores app profile data (`role`, `first_name`, `last_name`, `phone_number`, `country_code`)
 - Protected dashboard routes are blocked without session and redirect to `/login`
+- Admin/client dashboards enforce role-based route protection
 
 ---
 
@@ -677,24 +737,21 @@ git rm -r --cached .next roi-admin-app/.next roi-client-app/.next
 
 ## Current Phase Scope
 
-Implemented in phase 1:
+Implemented:
 
-- Monorepo setup
-- Shared package integration
-- Admin + client layouts
-- Sidebar + navbar UI
-- Route scaffolding
-- Placeholder pages
-- Responsive shell behavior
-- Component architecture cleanup
-- Alias-based imports from `@components`
+- Monorepo setup (Yarn workspaces)
+- Shared package integration (`roi-shared`)
+- Admin + client layouts, sidebar, navbar, bottom nav
+- Route scaffolding and placeholder dashboard modules
+- Responsive shell behavior and neon dashboard styling
+- Component architecture cleanup and `@components` alias imports
+- **HTTP auth integration**: login, logout, client signup, forgot password, recovery link handling on `/update-user`, session persistence (`roi-shared/src/utils/authSession.ts`), role checks (admin vs client)
+- **Mock dashboard summary** via `apiClient` (`GET /dashboard/summary`)
 
-Not implemented in phase 1:
+Not implemented yet:
 
-- Real backend auth
-- Real API integration
-- Full CRUD flows
-- Advanced dashboard analytics
+- Real HTTP backend for dashboard, users, packages, and other CRUD (beyond the auth API configured in env)
+- Full production CRUD flows and analytics
 
 ---
 
@@ -702,20 +759,20 @@ Not implemented in phase 1:
 
 Planned next features:
 
-- Authentication with backend
-- Role-based access control
+- Replace mock `apiClient` with a real app API (e.g. Python service) while keeping the same store hooks where practical
+- Extend role-based access control as backend rules grow
 - Data tables with pagination/filtering/sorting
 - Notification system
 - Analytics widgets/charts
 - Settings module
-- Form validation strategy
+- Form validation extensions for new entities
 - Realtime updates (if needed)
 
 ---
 
 ## Developer Guidelines
 
-1. Keep route entry logic in `pages/<Feature>/index.jsx`
+1. Keep route entry logic in `pages/<Feature>/index.tsx` (or `.jsx` during migration)
 2. Keep UI modules inside `components/<Feature>/`
 3. Reuse from `roi-shared` first before adding local duplicates
 4. Export feature UI through `components/index.ts`
@@ -740,6 +797,10 @@ Planned next features:
 ## Import alias not resolving
 - Verify `tsconfig.json` exists per app
 - Restart dev server after alias changes
+
+## Auth errors or "Missing auth API environment variables"
+- Ensure each app has `NEXT_PUBLIC_AUTH_API_URL` and `NEXT_PUBLIC_AUTH_ANON_KEY` in its `.env` (see [State and Data Layer](#state-and-data-layer)).
+- Optional: `NEXT_PUBLIC_AUTH_RECOVER_REDIRECT_TO` for password-reset redirect URLs.
 
 ## UI layout broken after changes
 - Check dashboard shell composition in layout files

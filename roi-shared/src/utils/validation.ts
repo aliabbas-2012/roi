@@ -67,3 +67,41 @@ export const validateRegisterFields = ({ firstName, lastName, email, countryCode
 
   return errors;
 };
+
+export const validateRecoverPasswordFields = ({ email }) => {
+  const errors = {};
+  const emailValue = String(email || "").trim();
+
+  if (!emailValue) {
+    errors.email = "Email is required.";
+  } else if (!EMAIL_REGEX.test(emailValue)) {
+    errors.email = "Enter a valid email address.";
+  }
+
+  return errors;
+};
+
+export const validateUpdateUserFields = ({ email, password, confirmPassword }) => {
+  const errors = {};
+  const emailValue = String(email || "").trim();
+  const passwordValue = String(password || "").trim();
+  const confirmValue = String(confirmPassword || "").trim();
+
+  if (!emailValue && !passwordValue) {
+    errors.email = "Enter email or password to update.";
+  }
+
+  if (emailValue && !EMAIL_REGEX.test(emailValue)) {
+    errors.email = "Enter a valid email address.";
+  }
+
+  if (passwordValue && !PASSWORD_REGEX.test(passwordValue)) {
+    errors.password = "Min 8 chars with upper, lower, number, and special character.";
+  }
+
+  if (passwordValue && passwordValue !== confirmValue) {
+    errors.confirmPassword = "Confirm password must match.";
+  }
+
+  return errors;
+};

@@ -12,6 +12,8 @@ export { default as PlaceholderPage } from "./components/PlaceholderPage";
 export { default as ProtectedRoute } from "./components/ProtectedRoute";
 export { default as ProfileContent } from "./components/ProfileContent";
 export { default as AuthLoginForm } from "./components/AuthLoginForm";
+export { default as AuthForgotPasswordForm } from "./components/AuthForgotPasswordForm";
+export { default as AuthUpdateUserForm } from "./components/AuthUpdateUserForm";
 export { default as ClientRegisterForm } from "./components/ClientRegisterForm";
 export { default as RoleTopNavbar } from "./components/RoleTopNavbar";
 export { default as RoleSidebar } from "./components/RoleSidebar";

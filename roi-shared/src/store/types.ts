@@ -8,10 +8,11 @@ export const buildAsyncTypes = (key) => ({
 
 export const authTypes = {
   INIT: "AUTH_INIT",
-  LOGIN: buildAsyncTypes("AUTH_LOGIN"),
+  LOGIN_SEND_OTP: buildAsyncTypes("AUTH_LOGIN_SEND_OTP"),
+  LOGIN_VERIFY_OTP: buildAsyncTypes("AUTH_LOGIN_VERIFY_OTP"),
   REGISTER_CLIENT: buildAsyncTypes("AUTH_REGISTER_CLIENT"),
   RECOVER_PASSWORD: buildAsyncTypes("AUTH_RECOVER_PASSWORD"),
-  UPDATE_USER: buildAsyncTypes("AUTH_UPDATE_USER"),
+  UPDATE_USER_PASSWORD: buildAsyncTypes("AUTH_UPDATE_USER_PASSWORD"),
   LOGOUT: "AUTH_LOGOUT",
 };
 

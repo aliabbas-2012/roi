@@ -1,32 +1,61 @@
 // @ts-nocheck
 "use client";
 
-import React, { Suspense, useState } from "react";
+import React, { Suspense, useCallback, useState } from "react";
 import Link from "next/link";
-import { Alert } from "react-bootstrap";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Button from "./Button";
+import FlashAlert from "./FlashAlert";
 import Input from "./Input";
 import PasswordInput from "./PasswordInput";
 import FormErrorText from "./FormErrorText";
 import useAuth from "../hooks/useAuth";
-import { useRouter, useSearchParams } from "next/navigation";
 import { validateLoginFields } from "../utils/validation";
+import { setPendingLoginOtp } from "../utils/pendingLoginOtp";
 
 const AuthLoginQueryAlerts = () => {
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  const stripAuthQueryFlags = useCallback(() => {
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete("registered");
+    next.delete("verify");
+    next.delete("passwordUpdated");
+    const qs = next.toString();
+    const path = pathname || "/login";
+    router.replace(qs ? `${path}?${qs}` : path);
+  }, [router, pathname, searchParams]);
+
+  const registered = searchParams.get("registered") === "1";
+  const verifyEmail = searchParams.get("verify") === "1";
+  const passwordUpdated = searchParams.get("passwordUpdated") === "1";
+
+  const bannerMessage = passwordUpdated
+    ? "Password updated successfully, please login."
+    : registered && verifyEmail
+      ? "Account created successfully. Please check your email inbox, confirm your email, and then return."
+      : registered
+        ? "Account created successfully. You can sign in now."
+        : "";
+
   return (
-    <>
-      {searchParams.get("registered") === "1" ? (
-        <Alert variant="success">Account created successfully. Please login.</Alert>
-      ) : null}
-      {searchParams.get("passwordUpdated") === "1" ? (
-        <Alert variant="success">Password updated successfully, please login.</Alert>
-      ) : null}
-    </>
+    <FlashAlert
+      variant="success"
+      message={bannerMessage}
+      onAutoHide={bannerMessage ? stripAuthQueryFlags : undefined}
+    />
   );
 };
 
-const AuthLoginForm = ({ role, emailPlaceholder, showRegisterLink = false, registerHref = "/register" }) => {
+const AuthLoginForm = ({
+  role,
+  emailPlaceholder,
+  showRegisterLink = false,
+  registerHref = "/register",
+  otpVerifyHref = "/verify-login-otp",
+}) => {
   const router = useRouter();
   const { login, error: authError } = useAuth();
   const [email, setEmail] = useState(emailPlaceholder || "");
@@ -44,7 +73,8 @@ const AuthLoginForm = ({ role, emailPlaceholder, showRegisterLink = false, regis
     setLoading(true);
     try {
       await login({ email, password, role });
-      router.push("/dashboard");
+      setPendingLoginOtp({ email: String(email || "").trim(), role });
+      router.push(otpVerifyHref);
     } catch (err) {
       setError(err?.message || authError || "Unable to login.");
     } finally {
@@ -57,7 +87,7 @@ const AuthLoginForm = ({ role, emailPlaceholder, showRegisterLink = false, regis
       <Suspense fallback={null}>
         <AuthLoginQueryAlerts />
       </Suspense>
-      {error ? <Alert variant="danger">{error}</Alert> : null}
+      <FlashAlert variant="danger" message={error} onAutoHide={() => setError("")} />
       <Input
         label="Email"
         type="email"

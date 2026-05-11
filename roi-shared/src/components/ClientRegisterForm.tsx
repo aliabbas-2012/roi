@@ -3,7 +3,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Alert } from "react-bootstrap";
+import FlashAlert from "./FlashAlert";
 import { useRouter } from "next/navigation";
 import Button from "./Button";
 import Input from "./Input";
@@ -41,7 +41,7 @@ const ClientRegisterForm = () => {
     if (Object.keys(nextErrors).length) return;
     setLoading(true);
     try {
-      await registerClient({
+      const data = await registerClient({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         email: email.trim(),
@@ -49,7 +49,10 @@ const ClientRegisterForm = () => {
         phoneNumber: phoneNumber.trim(),
         password,
       });
-      router.push("/login?registered=1");
+      const qs = new URLSearchParams();
+      qs.set("registered", "1");
+      if (data?.needsEmailVerification) qs.set("verify", "1");
+      router.push(`/login?${qs.toString()}`);
     } catch (err) {
       setError(err?.message || authError || "Unable to create account.");
     } finally {
@@ -59,7 +62,7 @@ const ClientRegisterForm = () => {
 
   return (
     <form onSubmit={handleSubmit} noValidate>
-      {error ? <Alert variant="danger">{error}</Alert> : null}
+      <FlashAlert variant="danger" message={error} onAutoHide={() => setError("")} />
       <Input
         label="First name"
         value={firstName}

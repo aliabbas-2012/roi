@@ -161,8 +161,9 @@ roi-shared/src/
 
 Public:
 - `/login`
+- `/verify-login-otp` (email OTP step after password is accepted; requires pending state from `/login`)
 - `/forgot-password`
-- `/update-user` (password/email update from recovery link in the URL hash)
+- `/update-password` (set new password from recovery link; token in URL hash)
 
 Other:
 - `/unauthorized` (role mismatch or access denied)
@@ -182,8 +183,9 @@ Public:
 - `/` (public landing page, no login required)
 - `/register`
 - `/login`
+- `/verify-login-otp` (email OTP step after password is accepted)
 - `/forgot-password`
-- `/update-user` (password update from recovery link in the URL hash)
+- `/update-password` (set new password from recovery link; token in URL hash)
 
 Other:
 - `/unauthorized`
@@ -331,8 +333,10 @@ This keeps route files minimal and feature UI modular.
 To reduce duplication between admin and client apps, these components are centralized in `roi-shared`:
 
 - `roi-shared/src/components/AuthLoginForm.tsx`
+- `roi-shared/src/components/AuthVerifyLoginOtpForm.tsx`
+- `roi-shared/src/components/FlashAlert.tsx`
 - `roi-shared/src/components/AuthForgotPasswordForm.tsx`
-- `roi-shared/src/components/AuthUpdateUserForm.tsx`
+- `roi-shared/src/components/AuthUpdatePasswordForm.tsx`
 - `roi-shared/src/components/ClientRegisterForm.tsx`
 - `roi-shared/src/components/ProtectedRoute.tsx`
 - `roi-shared/src/components/PlaceholderPage.tsx`
@@ -374,6 +378,7 @@ Shared form error text standard:
 
 - Use `FormErrorText` from `roi-shared` to render field-level validation messages across forms.
 - `FormErrorText` centralizes error color/display spacing so login/register/phone-field errors stay consistent.
+- Use `FlashAlert` from `roi-shared` for inline status messages: pass `variant` and string `message` (empty hides it). Default **auto-dismiss 15s**; use `onAutoHide` to clear parent state or strip query flags (see auth login success banners).
 - Auth login and client register forms now use this shared error component instead of repeated inline `Form.Text` blocks.
 
 Shared auth validation standard:
@@ -383,8 +388,9 @@ Shared auth validation standard:
   - `validateLoginFields`
   - `validateRegisterFields`
   - `validateRecoverPasswordFields`
-  - `validateUpdateUserFields`
-- These validators are used by shared auth forms (`AuthLoginForm`, `ClientRegisterForm`, `AuthForgotPasswordForm`, `AuthUpdateUserForm`) to avoid duplicate regex/rule logic.
+  - `validateUpdatePasswordFields`
+  - `validateLoginOtpFields`
+- These validators are used by shared auth forms (`AuthLoginForm`, `AuthVerifyLoginOtpForm`, `ClientRegisterForm`, `AuthForgotPasswordForm`, `AuthUpdatePasswordForm`) to avoid duplicate regex/rule logic.
 - Validation regex/rules/messages now have a single source of truth for easier maintenance.
 
 Shared dashboard shell extraction notes:
@@ -472,9 +478,12 @@ Shared hooks for store usage:
 Current features migrated to store flow:
 
 - Auth:
-  - login
+  - login (password + role check, then email OTP send — `LOGIN_SEND_OTP`)
+  - login OTP verify (`LOGIN_VERIFY_OTP`, sets session)
   - client register
   - logout
+  - forgot password (recovery email)
+  - update password from recovery (`UPDATE_USER_PASSWORD` async flow)
   - init session from storage
 - Dashboard:
   - fetch summary from shared API layer (`GET /dashboard/summary`)
@@ -489,7 +498,7 @@ Provider wiring:
 
 - Global data-fetching setup via **React Query** (`QueryClientProvider`)
 - Base query defaults configured in each app provider
-- Auth uses a **hosted HTTP auth API** configured with `NEXT_PUBLIC_AUTH_*` env vars (`roi-shared/src/store/api/authApi.ts`). There is **no** bundled auth SDK; requests use `fetch` to standard paths such as `/auth/v1/token`, `/auth/v1/signup`, `/auth/v1/recover`, `/auth/v1/user`.
+- Auth uses a **hosted HTTP auth API** configured with `NEXT_PUBLIC_AUTH_*` env vars (`roi-shared/src/store/api/authApi.ts`). There is **no** bundled auth SDK; requests use `fetch` to standard paths such as `/auth/v1/token`, `/auth/v1/signup`, `/auth/v1/otp`, `/auth/v1/verify`, `/auth/v1/recover`, `/auth/v1/user`.
 - Non-auth “app API” calls go through `roi-shared/src/utils/api.ts` (`apiClient`). Today `GET /dashboard/summary` is a **local mock** (role-based placeholder numbers); replace `apiClient` when wiring a real backend.
 - Client landing page (`roi-client-app/src/app/page.tsx`) is fully static UI and does not call any API endpoint
 
@@ -498,15 +507,19 @@ Auth/profile client implementation lives in:
 - `roi-shared/src/store/api/authApi.ts`
 - `roi-shared/src/store/actions/authActions.ts`
 - `roi-shared/src/components/AuthLoginForm.tsx`
+- `roi-shared/src/components/AuthVerifyLoginOtpForm.tsx`
+- `roi-shared/src/components/AuthForgotPasswordForm.tsx`
+- `roi-shared/src/components/AuthUpdatePasswordForm.tsx`
 - `roi-shared/src/components/ClientRegisterForm.tsx`
 - `roi-shared/src/components/ProtectedRoute.tsx`
 - `roi-shared/src/utils/authSession.ts`
+- `roi-shared/src/utils/pendingLoginOtp.ts` (temporary `{ email, role }` between `/login` and `/verify-login-otp`)
 
 Auth API environment variables:
 
 - `NEXT_PUBLIC_AUTH_API_URL` — base URL of the auth HTTP API (no trailing slash)
 - `NEXT_PUBLIC_AUTH_ANON_KEY` — public anon key the auth service expects in `apikey` / `Authorization` headers
-- `NEXT_PUBLIC_AUTH_RECOVER_REDIRECT_TO` (optional, for password reset link `redirect_to`)
+- `NEXT_PUBLIC_AUTH_RECOVER_REDIRECT_TO` (optional full `redirect_to` URL for password reset; if unset, forgot-password uses `{origin}/update-password`)
 
 Configured in:
 
@@ -546,11 +559,12 @@ Important:
 Auth UX notes:
 
 - Login form is vertically centered via shared `AuthLayout`.
+- **Two-step sign-in:** `AuthLoginForm` checks email + password + role, then calls **`POST /auth/v1/otp`** to email a one-time code, stores `{ email, role }` in **`sessionStorage`** (`roi-shared/src/utils/pendingLoginOtp.ts`), and navigates to **`/verify-login-otp`**. `AuthVerifyLoginOtpForm` submits the code to **`POST /auth/v1/verify`** (tries `type: "email"`, then `"magiclink"` for provider compatibility), then persists the session and sends the user to the dashboard.
 - Client login includes a signup/register link at form bottom.
 - Forgot-password form calls the auth service recovery endpoint in both admin and client apps.
 - Shared forgot-password UI uses `AuthForgotPasswordForm` from `roi-shared`.
-- Recovery links redirect users to `/update-user` page.
-- Shared update-user/reset UI uses `AuthUpdateUserForm` from `roi-shared` for both admin and client apps.
+- Recovery links redirect users to `/update-password` (forgot-password default `redirect_to` uses the app origin + this path).
+- Shared recovery password UI uses `AuthUpdatePasswordForm` from `roi-shared` for both admin and client apps.
 - Client register form is fully functional via the shared auth API and profile flow.
 - Client register fields:
   - `firstName`
@@ -564,7 +578,7 @@ Auth UX notes:
   - email format
   - phone digits length and country-code format
   - password complexity (upper/lower/number/special, min 8 chars)
-- On client signup, the app sends the signup payload to the auth API and redirects to login with a success alert.
+- On client signup, the app sends the signup payload to the auth API and redirects to `/login?registered=1` (and `verify=1` when there is no session token and the user is not yet email-confirmed) with a matching **`FlashAlert`** message.
 - Login checks user metadata role to enforce app access:
   - admin app requires role `admin`
   - client app requires role `client`
@@ -575,12 +589,12 @@ Auth UX notes:
 - After logout, protected routes cannot be reopened by direct URL without logging in again.
 - Recovery email endpoint used:
   - `POST /auth/v1/recover`
-- Update user endpoint used from recovery link session:
-  - `PUT /auth/v1/user`
-- On successful update user, app redirects to `/login?passwordUpdated=1` and shows:
+- Password update from recovery uses the auth API:
+  - `PUT /auth/v1/user` (body includes `password`; session is the recovery `access_token` from the hash)
+- On success, the app redirects to `/login?passwordUpdated=1` and shows:
   - "Password updated successfully, please login."
 - Failed login and other auth API errors are surfaced in form alerts. Error messages are normalized in `authApi.ts` from common response shapes (`msg`, `message`, `error_description`, `error`, HTTP status).
-- `AuthLoginForm` wraps `useSearchParams` (success banners for `?registered=1` and `?passwordUpdated=1`) in a **React `Suspense`** boundary so `/login` prerenders cleanly under Next.js 15.
+- `AuthLoginForm` wraps `useSearchParams` (banners for `?registered=1`, optional `verify=1` after signup without a session, and `?passwordUpdated=1`) in a **React `Suspense`** boundary so `/login` prerenders cleanly under Next.js 15; those banners use **`FlashAlert`** and strip `registered` / `verify` / `passwordUpdated` after auto-dismiss.
 
 ---
 
@@ -745,7 +759,7 @@ Implemented:
 - Route scaffolding and placeholder dashboard modules
 - Responsive shell behavior and neon dashboard styling
 - Component architecture cleanup and `@components` alias imports
-- **HTTP auth integration**: login, logout, client signup, forgot password, recovery link handling on `/update-user`, session persistence (`roi-shared/src/utils/authSession.ts`), role checks (admin vs client)
+- **HTTP auth integration**: login (password + email OTP), logout, client signup, forgot password, recovery password completion on `/update-password`, session persistence (`roi-shared/src/utils/authSession.ts`), role checks (admin vs client)
 - **Mock dashboard summary** via `apiClient` (`GET /dashboard/summary`)
 
 Not implemented yet:
@@ -801,6 +815,16 @@ Planned next features:
 ## Auth errors or "Missing auth API environment variables"
 - Ensure each app has `NEXT_PUBLIC_AUTH_API_URL` and `NEXT_PUBLIC_AUTH_ANON_KEY` in its `.env` (see [State and Data Layer](#state-and-data-layer)).
 - Optional: `NEXT_PUBLIC_AUTH_RECOVER_REDIRECT_TO` for password-reset redirect URLs.
+
+## Login OTP never arrives or verify always fails
+
+### Email says “Magic Link” and has no numeric code
+- Hosted **Supabase** uses one email flow for `POST /auth/v1/otp`: it sends whatever your **Magic Link** template contains. A link-only template produces a **magic link only** (what you saw).
+- **Fix:** Supabase Dashboard → **Authentication** → **Email Templates** → **Magic Link** → edit the HTML/body and include the OTP variable, for example a line like: `Your sign-in code is: {{ .Token }}` (see [Supabase: With OTP — email template](https://supabase.com/docs/guides/auth/auth-email-passwordless?queryGroups=language&language=js#with-otp)).
+- Save the template, then try **Sign in** again from your app so a **new** email is generated. Our `/verify-login-otp` page expects the user to type that **6–8 digit** code (the app does not parse the magic-link URL for you).
+
+### Other verify issues
+- After password success, `/verify-login-otp` expects `sessionStorage` from the same browser tab; opening the OTP page in another browser/profile shows the “session expired” message — sign in again from `/login`.
 
 ## UI layout broken after changes
 - Check dashboard shell composition in layout files

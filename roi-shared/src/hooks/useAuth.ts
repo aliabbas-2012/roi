@@ -6,10 +6,11 @@ import useAppSelector from "./useAppSelector";
 import {
   initAuthSession,
   loginAction,
+  loginVerifyOtpAction,
   logoutAction,
   recoverPasswordAction,
   registerClientAction,
-  updateUserAction,
+  updatePasswordFromRecoveryAction,
 } from "../store/actions";
 import { selectAuthError, selectAuthLoading, selectAuthSession, selectIsAuthenticated } from "../store/selectors";
 
@@ -27,9 +28,10 @@ const useAuth = () => {
     error,
     initSession: () => dispatch(initAuthSession()),
     login: (credentials) => dispatch(loginAction(credentials)),
+    loginVerifyOtp: (payload) => dispatch(loginVerifyOtpAction(payload)),
     registerClient: (payload) => dispatch(registerClientAction(payload)),
     recoverPassword: (payload) => dispatch(recoverPasswordAction(payload)),
-    updateUser: (payload) => dispatch(updateUserAction(payload)),
+    updatePasswordFromRecovery: (payload) => dispatch(updatePasswordFromRecoveryAction(payload)),
     logout: () => dispatch(logoutAction()),
   };
 };

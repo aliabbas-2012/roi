@@ -17,20 +17,12 @@ const authReducer = (state = initialState, action) => {
         session: action.payload || null,
       };
 
-    case authTypes.LOGIN.REQUEST:
+    case authTypes.LOGIN_SEND_OTP.REQUEST:
+    case authTypes.LOGIN_VERIFY_OTP.REQUEST:
     case authTypes.REGISTER_CLIENT.REQUEST:
     case authTypes.RECOVER_PASSWORD.REQUEST:
-    case authTypes.UPDATE_USER.REQUEST:
+    case authTypes.UPDATE_USER_PASSWORD.REQUEST:
       return { ...state, loading: true, error: null };
-
-    case authTypes.LOGIN.SUCCESS:
-      return {
-        ...state,
-        loading: false,
-        error: null,
-        isAuthenticated: true,
-        session: action.payload,
-      };
 
     case authTypes.REGISTER_CLIENT.SUCCESS:
       return {
@@ -41,18 +33,29 @@ const authReducer = (state = initialState, action) => {
         session: null,
       };
 
+    case authTypes.LOGIN_SEND_OTP.SUCCESS:
     case authTypes.RECOVER_PASSWORD.SUCCESS:
-    case authTypes.UPDATE_USER.SUCCESS:
+    case authTypes.UPDATE_USER_PASSWORD.SUCCESS:
       return {
         ...state,
         loading: false,
         error: null,
       };
 
-    case authTypes.LOGIN.FAILURE:
+    case authTypes.LOGIN_VERIFY_OTP.SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        error: null,
+        isAuthenticated: true,
+        session: action.payload,
+      };
+
+    case authTypes.LOGIN_SEND_OTP.FAILURE:
+    case authTypes.LOGIN_VERIFY_OTP.FAILURE:
     case authTypes.REGISTER_CLIENT.FAILURE:
     case authTypes.RECOVER_PASSWORD.FAILURE:
-    case authTypes.UPDATE_USER.FAILURE:
+    case authTypes.UPDATE_USER_PASSWORD.FAILURE:
       return {
         ...state,
         loading: false,

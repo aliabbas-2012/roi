@@ -3,7 +3,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Alert } from "react-bootstrap";
+import FlashAlert from "./FlashAlert";
 import Input from "./Input";
 import Button from "./Button";
 import FormErrorText from "./FormErrorText";
@@ -29,7 +29,7 @@ const AuthForgotPasswordForm = ({ emailPlaceholder = "user@roi.com", loginHref =
 
     let redirectTo = process.env.NEXT_PUBLIC_AUTH_RECOVER_REDIRECT_TO || "";
     if (!redirectTo && typeof window !== "undefined") {
-      redirectTo = `${window.location.origin}/update-user`;
+      redirectTo = `${window.location.origin}/update-password`;
     }
 
     setLoading(true);
@@ -48,8 +48,8 @@ const AuthForgotPasswordForm = ({ emailPlaceholder = "user@roi.com", loginHref =
 
   return (
     <form onSubmit={handleSubmit} noValidate>
-      {success ? <Alert variant="success">{success}</Alert> : null}
-      {error ? <Alert variant="danger">{error}</Alert> : null}
+      <FlashAlert variant="success" message={success} onAutoHide={() => setSuccess("")} />
+      <FlashAlert variant="danger" message={error} onAutoHide={() => setError("")} />
       <Input
         label="Email"
         type="email"

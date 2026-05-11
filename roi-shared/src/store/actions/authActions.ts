@@ -1,5 +1,14 @@
 // @ts-nocheck
-import { getAuthSession, loginApi, logoutApi, recoverPasswordApi, registerClientApi, updateUserApi } from "../api";
+import {
+  getAuthSession,
+  logoutApi,
+  recoverPasswordApi,
+  registerClientApi,
+  sendLoginEmailOtpApi,
+  updatePasswordFromRecoveryApi,
+  verifyLoginEmailOtpApi,
+  verifyPasswordForLoginApi,
+} from "../api";
 import { authTypes } from "../types";
 
 export const initAuthSession = () => (dispatch) => {
@@ -14,17 +23,34 @@ export const initAuthSession = () => (dispatch) => {
     });
 };
 
+/** Password check + send email OTP; does not set session. Caller redirects to OTP page. */
 export const loginAction =
   ({ email, password, role }) =>
   async (dispatch) => {
-    dispatch({ type: authTypes.LOGIN.REQUEST });
+    dispatch({ type: authTypes.LOGIN_SEND_OTP.REQUEST });
     try {
-      const data = await loginApi({ email, password, role });
-      dispatch({ type: authTypes.LOGIN.SUCCESS, payload: data });
-      return data;
+      await verifyPasswordForLoginApi({ email, password, role });
+      await sendLoginEmailOtpApi({ email });
+      dispatch({ type: authTypes.LOGIN_SEND_OTP.SUCCESS, payload: { email, role } });
+      return { email, role, otpSent: true };
     } catch (error) {
       const message = error?.message || "Unable to login.";
-      dispatch({ type: authTypes.LOGIN.FAILURE, payload: message });
+      dispatch({ type: authTypes.LOGIN_SEND_OTP.FAILURE, payload: message });
+      throw error;
+    }
+  };
+
+export const loginVerifyOtpAction =
+  ({ email, token, role }) =>
+  async (dispatch) => {
+    dispatch({ type: authTypes.LOGIN_VERIFY_OTP.REQUEST });
+    try {
+      const data = await verifyLoginEmailOtpApi({ email, token, role });
+      dispatch({ type: authTypes.LOGIN_VERIFY_OTP.SUCCESS, payload: data });
+      return data;
+    } catch (error) {
+      const message = error?.message || "Invalid or expired code.";
+      dispatch({ type: authTypes.LOGIN_VERIFY_OTP.FAILURE, payload: message });
       throw error;
     }
   };
@@ -64,17 +90,17 @@ export const recoverPasswordAction =
     }
   };
 
-export const updateUserAction =
-  ({ accessToken, email, password }) =>
+export const updatePasswordFromRecoveryAction =
+  ({ accessToken, password }) =>
   async (dispatch) => {
-    dispatch({ type: authTypes.UPDATE_USER.REQUEST });
+    dispatch({ type: authTypes.UPDATE_USER_PASSWORD.REQUEST });
     try {
-      const data = await updateUserApi({ accessToken, email, password });
-      dispatch({ type: authTypes.UPDATE_USER.SUCCESS, payload: data });
+      const data = await updatePasswordFromRecoveryApi({ accessToken, password });
+      dispatch({ type: authTypes.UPDATE_USER_PASSWORD.SUCCESS, payload: data });
       return data;
     } catch (error) {
-      const message = error?.message || "Unable to update user.";
-      dispatch({ type: authTypes.UPDATE_USER.FAILURE, payload: message });
+      const message = error?.message || "Unable to update password.";
+      dispatch({ type: authTypes.UPDATE_USER_PASSWORD.FAILURE, payload: message });
       throw error;
     }
   };

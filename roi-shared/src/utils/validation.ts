@@ -81,21 +81,14 @@ export const validateRecoverPasswordFields = ({ email }) => {
   return errors;
 };
 
-export const validateUpdateUserFields = ({ email, password, confirmPassword }) => {
+export const validateUpdatePasswordFields = ({ password, confirmPassword }) => {
   const errors = {};
-  const emailValue = String(email || "").trim();
   const passwordValue = String(password || "").trim();
   const confirmValue = String(confirmPassword || "").trim();
 
-  if (!emailValue && !passwordValue) {
-    errors.email = "Enter email or password to update.";
-  }
-
-  if (emailValue && !EMAIL_REGEX.test(emailValue)) {
-    errors.email = "Enter a valid email address.";
-  }
-
-  if (passwordValue && !PASSWORD_REGEX.test(passwordValue)) {
+  if (!passwordValue) {
+    errors.password = "Enter a new password.";
+  } else if (!PASSWORD_REGEX.test(passwordValue)) {
     errors.password = "Min 8 chars with upper, lower, number, and special character.";
   }
 
@@ -103,5 +96,18 @@ export const validateUpdateUserFields = ({ email, password, confirmPassword }) =
     errors.confirmPassword = "Confirm password must match.";
   }
 
+  return errors;
+};
+
+const LOGIN_OTP_REGEX = /^\d{6,8}$/;
+
+export const validateLoginOtpFields = ({ token }) => {
+  const errors = {};
+  const value = String(token || "").trim();
+  if (!value) {
+    errors.token = "Enter the code from your email.";
+  } else if (!LOGIN_OTP_REGEX.test(value)) {
+    errors.token = "Enter the 6–8 digit code from your email.";
+  }
   return errors;
 };

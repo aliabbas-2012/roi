@@ -65,6 +65,7 @@ const ClientRegisterForm = () => {
       <FlashAlert variant="danger" message={error} onAutoHide={() => setError("")} />
       <Input
         label="First name"
+        placeholder="First name"
         value={firstName}
         onChange={(event) => setFirstName(event.target.value)}
         isInvalid={Boolean(fieldErrors.firstName)}
@@ -72,6 +73,7 @@ const ClientRegisterForm = () => {
       <FormErrorText message={fieldErrors.firstName} />
       <Input
         label="Last name"
+        placeholder="Last name"
         value={lastName}
         onChange={(event) => setLastName(event.target.value)}
         isInvalid={Boolean(fieldErrors.lastName)}
@@ -82,7 +84,7 @@ const ClientRegisterForm = () => {
         type="email"
         value={email}
         onChange={(event) => setEmail(event.target.value)}
-        placeholder="client@roi.com"
+        placeholder="Email"
         isInvalid={Boolean(fieldErrors.email)}
       />
       <FormErrorText message={fieldErrors.email} />

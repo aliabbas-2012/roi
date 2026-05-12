@@ -8,7 +8,7 @@ import AuthLayout from "../../layouts/AuthLayout";
 const ForgotPasswordPage = () => {
   return (
     <AuthLayout title="Forgot Password">
-      <AuthForgotPasswordForm emailPlaceholder="admin@roi.com" loginHref="/login" />
+      <AuthForgotPasswordForm emailPlaceholder="Email" loginHref="/login" />
     </AuthLayout>
   );
 };

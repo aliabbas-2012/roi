@@ -8,7 +8,7 @@ import AuthLayout from "../../layouts/AuthLayout";
 const LoginPage = () => {
   return (
     <AuthLayout title="Admin Login">
-      <AuthLoginForm role="admin" emailPlaceholder="admin@roi.com" />
+      <AuthLoginForm role="admin" emailPlaceholder="Email" />
     </AuthLayout>
   );
 };

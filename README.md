@@ -335,6 +335,7 @@ To reduce duplication between admin and client apps, these components are centra
 - `roi-shared/src/components/AuthLoginForm.tsx`
 - `roi-shared/src/components/AuthVerifyLoginOtpForm.tsx`
 - `roi-shared/src/components/FlashAlert.tsx`
+- `roi-shared/src/components/AuthIdleWatcher.tsx`
 - `roi-shared/src/components/AuthForgotPasswordForm.tsx`
 - `roi-shared/src/components/AuthUpdatePasswordForm.tsx`
 - `roi-shared/src/components/ClientRegisterForm.tsx`
@@ -490,7 +491,7 @@ Current features migrated to store flow:
 
 Provider wiring:
 
-- Both app providers wrap UI with shared `StoreProvider` + `QueryClientProvider`.
+- Both app providers wrap UI with shared `StoreProvider` + `QueryClientProvider`, and mount shared **`AuthIdleWatcher`** (idle auto-logout when `NEXT_PUBLIC_SESSION_IDLE_MINUTES` is set).
 
 ---
 
@@ -514,12 +515,14 @@ Auth/profile client implementation lives in:
 - `roi-shared/src/components/ProtectedRoute.tsx`
 - `roi-shared/src/utils/authSession.ts`
 - `roi-shared/src/utils/pendingLoginOtp.ts` (temporary `{ email, role }` between `/login` and `/verify-login-otp`)
+- `roi-shared/src/utils/sessionIdle.ts` (reads `NEXT_PUBLIC_SESSION_IDLE_MINUTES` for idle timeout)
 
 Auth API environment variables:
 
 - `NEXT_PUBLIC_AUTH_API_URL` — base URL of the auth HTTP API (no trailing slash)
 - `NEXT_PUBLIC_AUTH_ANON_KEY` — public anon key the auth service expects in `apikey` / `Authorization` headers
 - `NEXT_PUBLIC_AUTH_RECOVER_REDIRECT_TO` (optional full `redirect_to` URL for password reset; if unset, forgot-password uses `{origin}/update-password`)
+- `NEXT_PUBLIC_SESSION_IDLE_MINUTES` (optional positive number: minutes without pointer/keyboard/scroll activity before **auto-logout**; omit, empty, `0`, or invalid = **disabled**)
 
 Configured in:
 
@@ -560,6 +563,7 @@ Auth UX notes:
 
 - Login form is vertically centered via shared `AuthLayout`.
 - **Two-step sign-in:** `AuthLoginForm` checks email + password + role, then calls **`POST /auth/v1/otp`** to email a one-time code, stores `{ email, role }` in **`sessionStorage`** (`roi-shared/src/utils/pendingLoginOtp.ts`), and navigates to **`/verify-login-otp`**. `AuthVerifyLoginOtpForm` submits the code to **`POST /auth/v1/verify`** (tries `type: "email"`, then `"magiclink"` for provider compatibility), then persists the session and sends the user to the dashboard.
+- **Idle session timeout (optional):** both apps mount shared **`AuthIdleWatcher`** inside `src/app/providers.tsx`. When `NEXT_PUBLIC_SESSION_IDLE_MINUTES` is a positive number and the user is authenticated, any period longer than that **without** pointer/keyboard/scroll/touch activity triggers **`logoutAction`** and a redirect to **`/login`**.
 - Client login includes a signup/register link at form bottom.
 - Forgot-password form calls the auth service recovery endpoint in both admin and client apps.
 - Shared forgot-password UI uses `AuthForgotPasswordForm` from `roi-shared`.

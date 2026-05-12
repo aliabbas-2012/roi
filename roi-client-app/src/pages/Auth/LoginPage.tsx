@@ -10,7 +10,7 @@ const LoginPage = () => {
     <AuthLayout title="Client Login">
       <AuthLoginForm
         role="client"
-        emailPlaceholder="client@roi.com"
+        emailPlaceholder="Email"
         showRegisterLink
         registerHref="/register"
       />
